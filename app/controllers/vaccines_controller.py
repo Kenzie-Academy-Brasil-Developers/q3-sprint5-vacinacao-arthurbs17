@@ -4,17 +4,19 @@ from http import HTTPStatus
 from datetime import datetime, timedelta
 from app.exc.wrong_key_received import WrongKeyReceived
 from sqlalchemy.exc import IntegrityError, DataError
+from app.services.quantity_keys import quantity_keys
 
 keys_names = ["cpf", "name", "vaccine_name", "health_unit_name"]
 
 def create_vaccine_card():
     data = request.get_json()
-        
-    for key in keys_names:
-        if type(data[key]) != str:
-            return jsonify({"message": "Os valores devem ser passados em string"}), HTTPStatus.BAD_REQUEST
 
+    data = quantity_keys(data, keys_names)
     try:
+        for key in keys_names:
+            if type(data[key]) != str:
+                return jsonify({"message": "Os valores devem ser passados em string"}), HTTPStatus.BAD_REQUEST
+
         new_vaccine = VaccineCardModel(**data)
         
         if new_vaccine.cpf.isdigit() == False:
@@ -35,7 +37,7 @@ def create_vaccine_card():
     except TypeError:
         error = WrongKeyReceived(data)
         return jsonify(error.message), HTTPStatus.BAD_REQUEST
-    except AttributeError:
+    except (AttributeError, KeyError):
         error = WrongKeyReceived(data)
         return jsonify(error.miss_keys), HTTPStatus.BAD_REQUEST
     except IntegrityError:
