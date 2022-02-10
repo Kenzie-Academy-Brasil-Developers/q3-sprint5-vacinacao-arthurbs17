@@ -21,6 +21,8 @@ def create_vaccine_card():
         
         if new_vaccine.cpf.isdigit() == False:
             return jsonify({"message": "Passar apenas valores numéricos no CPF!"}), HTTPStatus.BAD_REQUEST
+        if len(new_vaccine.cpf) != 11:
+            return jsonify({"message": "O CPF deve conter 11 digitos!"}), HTTPStatus.BAD_REQUEST
 
         new_vaccine.cpf = new_vaccine.cpf
         new_vaccine.name = new_vaccine.name.title()
@@ -34,16 +36,11 @@ def create_vaccine_card():
 
         return jsonify(new_vaccine), HTTPStatus.CREATED
         
-    except TypeError:
-        error = WrongKeyReceived(data)
-        return jsonify(error.message), HTTPStatus.BAD_REQUEST
     except (AttributeError, KeyError):
         error = WrongKeyReceived(data)
         return jsonify(error.miss_keys), HTTPStatus.BAD_REQUEST
     except IntegrityError:
         return jsonify({"message": "CPF já cadastrado!"}), HTTPStatus.CONFLICT
-    except DataError:
-        return jsonify({"message": "CPF com mais de 11 números"}), HTTPStatus.BAD_REQUEST
 
 def read_vaccine():
     
